@@ -1,21 +1,22 @@
 from Knapsack.Object import Object
 import random
 import bisect
-
+import Knapsack.FitnessFunction as ff
+import matplotlib.pyplot as plt
 # The size of solutions, everyone of it will be a solution wih the size of all objects.
 # I have 5 Items
 # a sample from POP will be 0 1 0 1 0
 
 # It says that we took the second and fourth item.
-POP_Size = 50
+POP_Size = 5
 # Maximum number of generations
-MAX_GENERATIONS = 150
+MAX_GENERATIONS = 10
 
 # Probability of crossover between [ 0.4 , 0.7 ]
-P_crossOver = 0.4
+P_crossOver = 0.6
 
 # Probability of mutation between [ 0.001 , 0.1 ]
-P_Mutation = 0.2
+P_Mutation = 0.1
 
 
 def CreatePopulation(AllObjects):
@@ -51,27 +52,22 @@ def CumulativeSum(list):
         New.append(total_sum)
     return New
 
-def fitness(chromosome , AllObjects , MAX_Weight):
-    total_value, total_weight, index = 0, 0, 0
-
-    for i in chromosome:
-        if i == 1:
-            total_value += AllObjects[index].value
-            total_weight += AllObjects[index].weight
-        index += 1
-    if total_weight > MAX_Weight:
-        return 0
-    else:
-        return total_value
-
 
 def Population_fitness(Pop , AllObjects , MAX_Weight):
-    return [fitness(i, AllObjects, MAX_Weight) for i in Pop]
+    return [ff.fitness(i, AllObjects, MAX_Weight) for i in Pop]
 
 def genentic_Algorithm(Pop , AllObjects , MAX_Weight):
+
     fitness_array = Population_fitness(Pop , AllObjects , MAX_Weight)
     fitness_array_cumlative = CumulativeSum(fitness_array)
     summation = fitness_array_cumlative[len(fitness_array_cumlative) - 1]
+
+    counter = [i for i in range(1, len(Pop)+1)]
+    plt.plot(counter, fitness_array)
+    plt.xlabel('chromosome')
+    plt.ylabel('fitness of chromosome')
+    plt.show()
+
     NextPop = []
     while len(NextPop) < len(Pop):
         r1, r2 = random.randint(0, summation), random.randint(0, summation)
@@ -82,9 +78,10 @@ def genentic_Algorithm(Pop , AllObjects , MAX_Weight):
         mutate(Offspring2)
         NextPop.append(Offspring1)
         NextPop.append(Offspring2)
+
     fitness_array.sort(reverse=True)
     BestValueOldPop = fitness_array[0]
-    #print(BestValueOldPop)
+
     return NextPop, BestValueOldPop
 
 def main():
@@ -99,13 +96,23 @@ def main():
             (v, w) = input().split()
             AllObjects.append(Object(int(w), int(v)))
         Population = CreatePopulation(AllObjects)
+
+        counter = [i for i in range(1, MAX_GENERATIONS + 1)]
+
+        values = []
         Value , maxv = 0 , 0
         for y in range(0, MAX_GENERATIONS):
             (Population, Value) = genentic_Algorithm(Population, AllObjects, MAX_Weight)
+            values.append(Value)
             if Value > maxv:
                 maxv = Value
+        plt.plot(counter, values)
+        plt.xlabel('generation number')
+        plt.ylabel('fitness of generation')
+        plt.show()
         file.write('Case: %d , value: %d\n' % (cases, maxv))
         cases+=1
+
     file.close()
 
 
