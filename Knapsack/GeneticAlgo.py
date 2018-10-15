@@ -7,16 +7,16 @@ import matplotlib.pyplot as plt
 # I have 5 Items
 # a sample from POP will be 0 1 0 1 0
 
-# It says that we took the second and fourth item.
-POP_Size = 5
+# It says that we took the second and fourth item.4 1
+POP_Size = 100
 # Maximum number of generations
-MAX_GENERATIONS = 10
+MAX_GENERATIONS = 300
 
 # Probability of crossover between [ 0.4 , 0.7 ]
-P_crossOver = 0.6
+P_crossOver = 0.4
 
 # Probability of mutation between [ 0.001 , 0.1 ]
-P_Mutation = 0.1
+P_Mutation = 0.01
 
 
 def CreatePopulation(AllObjects):
@@ -62,11 +62,11 @@ def genentic_Algorithm(Pop , AllObjects , MAX_Weight):
     fitness_array_cumlative = CumulativeSum(fitness_array)
     summation = fitness_array_cumlative[len(fitness_array_cumlative) - 1]
 
-    counter = [i for i in range(1, len(Pop)+1)]
-    plt.plot(counter, fitness_array)
-    plt.xlabel('chromosome')
-    plt.ylabel('fitness of chromosome')
-    plt.show()
+    #counter = [i for i in range(1, len(Pop)+1)]
+    #plt.plot(counter, fitness_array)
+    #plt.xlabel('chromosome')
+    #plt.ylabel('fitness of chromosome')
+    #plt.show()
 
     NextPop = []
     while len(NextPop) < len(Pop):
@@ -79,21 +79,42 @@ def genentic_Algorithm(Pop , AllObjects , MAX_Weight):
         NextPop.append(Offspring1)
         NextPop.append(Offspring2)
 
-    fitness_array.sort(reverse=True)
-    BestValueOldPop = fitness_array[0]
 
-    return NextPop, BestValueOldPop
+    NextGenerationFitness = Population_fitness(NextPop, AllObjects, MAX_Weight)
+    PopSize = len(Pop)
+    #Take best of previous and best of new.
+    nextGeneration = []
+    for i in range(len(Pop)//2):
+        m1, m2 = fitness_array.index(max(fitness_array)), NextGenerationFitness.index(max(NextGenerationFitness))
+        nextGeneration.append(Pop[m1])
+        nextGeneration.append(NextPop[m2])
+        Pop.remove(Pop[m1])
+        NextPop.remove(NextPop[m2])
+        fitness_array.remove(max(fitness_array))
+        NextGenerationFitness.remove(max(NextGenerationFitness))
+
+    while len(nextGeneration) < PopSize:
+        m1 = NextGenerationFitness.index(max(NextGenerationFitness))
+        nextGeneration.append(NextPop[m1])
+        NextPop.remove(NextPop[m1])
+
+    GenerationFitness = Population_fitness(nextGeneration , AllObjects , MAX_Weight)
+    GenerationFitness.sort(reverse=True)
+    BestValueOldPop = GenerationFitness[0]
+
+    return nextGeneration, BestValueOldPop
 
 def main():
-    file = open("output.txt", 'w')
-    T = int(input("Enter number of Test cases: "))
+    outfile = open("output.txt", 'w')
+    infile = open('input.txt', 'r')
+    T = int(infile.readline())
     cases = 1
     for i in range(T):
-        N = int(input("Enter number of knapsack items: "))
-        MAX_Weight = int(input("Enter max value of knapsack: "))
+        N = int(infile.readline())
+        MAX_Weight = int(infile.readline())
         AllObjects =[]
         for item in range(N):
-            (v, w) = input().split()
+            (v, w) = infile.readline().split()
             AllObjects.append(Object(int(w), int(v)))
         Population = CreatePopulation(AllObjects)
 
@@ -106,14 +127,15 @@ def main():
             values.append(Value)
             if Value > maxv:
                 maxv = Value
-        plt.plot(counter, values)
-        plt.xlabel('generation number')
-        plt.ylabel('fitness of generation')
-        plt.show()
-        file.write('Case: %d , value: %d\n' % (cases, maxv))
+        #plt.plot(counter, values)
+        #plt.xlabel('generation number')
+        #plt.ylabel('fitness of generation')
+        #plt.show()
+        outfile.write('Case: %d , value: %d\n' % (cases, maxv))
         cases+=1
 
-    file.close()
+    outfile.close()
+    infile.close()
 
 
 if __name__ == '__main__':
