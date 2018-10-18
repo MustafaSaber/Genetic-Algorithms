@@ -1,8 +1,9 @@
-from Knapsack.Object import Object
+from Object import Object
 import random
 import bisect
 import Knapsack.FitnessFunction as ff
 import matplotlib.pyplot as plt
+from tqdm import trange
 # The size of solutions, everyone of it will be a solution wih the size of all objects.
 # I have 5 Items
 # a sample from POP will be 0 1 0 1 0
@@ -19,8 +20,8 @@ P_crossOver = 0.4
 P_Mutation = 0.01
 
 
-def CreatePopulation(AllObjects):
-    return [[random.randint(0, 1) for i in range(0, len(AllObjects))] for n in range(0, POP_Size)]
+def create_population(all_objects):
+    return [[random.randint(0, 1) for i in range(0, len(all_objects))] for n in range(0, POP_Size)]
 
 
 def mutate(solution):
@@ -31,7 +32,7 @@ def mutate(solution):
 
 
 # The probability of crossover will be before we call the function
-def CrossOver(Parent1, Parent2 , AllObjects):
+def cross_over(Parent1, Parent2 , AllObjects):
     r1 = random.randint(1, len(AllObjects)-1)
     r2 = random.uniform(0, 1)
     Parent1, Parent2 = list(Parent1), list(Parent2)
@@ -44,7 +45,7 @@ def CrossOver(Parent1, Parent2 , AllObjects):
 
 
 # Will be used in selection
-def CumulativeSum(list):
+def cumulative_sum(list):
     New = []
     total_sum = 0
     for i in list:
@@ -53,13 +54,13 @@ def CumulativeSum(list):
     return New
 
 
-def Population_fitness(Pop , AllObjects , MAX_Weight):
+def pop_fitness(Pop , AllObjects , MAX_Weight):
     return [ff.fitness(i, AllObjects, MAX_Weight) for i in Pop]
 
-def genentic_Algorithm(Pop , AllObjects , MAX_Weight):
+def genentic_Algorithm(pop , AllObjects , MAX_Weight):
 
-    fitness_array = Population_fitness(Pop , AllObjects , MAX_Weight)
-    fitness_array_cumlative = CumulativeSum(fitness_array)
+    fitness_array = pop_fitness(pop , AllObjects , MAX_Weight)
+    fitness_array_cumlative = cumulative_sum(fitness_array)
     summation = fitness_array_cumlative[len(fitness_array_cumlative) - 1]
 
     #counter = [i for i in range(1, len(Pop)+1)]
@@ -68,62 +69,62 @@ def genentic_Algorithm(Pop , AllObjects , MAX_Weight):
     #plt.ylabel('fitness of chromosome')
     #plt.show()
 
-    NextPop = []
-    while len(NextPop) < len(Pop):
+    next_pop = []
+    while len(next_pop) < len(pop):
         r1, r2 = random.randint(0, summation), random.randint(0, summation)
         idx1 = bisect.bisect_left(fitness_array_cumlative, r1)
         idx2 = bisect.bisect_left(fitness_array_cumlative, r2)
-        (Offspring1, Offspring2) = CrossOver(Pop[idx1], Pop[idx2] , AllObjects)
+        (Offspring1, Offspring2) = cross_over(pop[idx1], pop[idx2] , AllObjects)
         mutate(Offspring1)
         mutate(Offspring2)
-        NextPop.append(Offspring1)
-        NextPop.append(Offspring2)
+        next_pop.append(Offspring1)
+        next_pop.append(Offspring2)
 
 
-    NextGenerationFitness = Population_fitness(NextPop, AllObjects, MAX_Weight)
-    PopSize = len(Pop)
+    next_gen_fitness = pop_fitness(next_pop, AllObjects, MAX_Weight)
+    pip_size = len(pop)
     #Take best of previous and best of new.
-    nextGeneration = []
-    for i in range(len(Pop)//2):
-        m1, m2 = fitness_array.index(max(fitness_array)), NextGenerationFitness.index(max(NextGenerationFitness))
-        nextGeneration.append(Pop[m1])
-        nextGeneration.append(NextPop[m2])
-        Pop.remove(Pop[m1])
-        NextPop.remove(NextPop[m2])
+    next_gen = []
+    for i in range(len(pop)//2):
+        m1, m2 = fitness_array.index(max(fitness_array)), next_gen_fitness.index(max(next_gen_fitness))
+        next_gen.append(pop[m1])
+        next_gen.append(next_pop[m2])
+        pop.remove(pop[m1])
+        next_pop.remove(next_pop[m2])
         fitness_array.remove(max(fitness_array))
-        NextGenerationFitness.remove(max(NextGenerationFitness))
+        next_gen_fitness.remove(max(next_gen_fitness))
 
-    while len(nextGeneration) < PopSize:
-        m1 = NextGenerationFitness.index(max(NextGenerationFitness))
-        nextGeneration.append(NextPop[m1])
-        NextPop.remove(NextPop[m1])
+    while len(next_gen) < pip_size:
+        m1 = next_gen_fitness.index(max(next_gen_fitness))
+        next_gen.append(next_pop[m1])
+        next_pop.remove(next_pop[m1])
 
-    GenerationFitness = Population_fitness(nextGeneration , AllObjects , MAX_Weight)
-    GenerationFitness.sort(reverse=True)
-    BestValueOldPop = GenerationFitness[0]
+    gen_fitness = pop_fitness(next_gen , AllObjects , MAX_Weight)
+    gen_fitness.sort(reverse=True)
+    best_val_old_pop = gen_fitness[0]
 
-    return nextGeneration, BestValueOldPop
+    return next_gen, best_val_old_pop
 
 def main():
     outfile = open("output.txt", 'w')
     infile = open('input.txt', 'r')
     T = int(infile.readline())
     cases = 1
-    for i in range(T):
+    for i in trange(T, desc='Total'):
         N = int(infile.readline())
         MAX_Weight = int(infile.readline())
         AllObjects =[]
         for item in range(N):
             (v, w) = infile.readline().split()
             AllObjects.append(Object(int(w), int(v)))
-        Population = CreatePopulation(AllObjects)
+        population = create_population(AllObjects)
 
         counter = [i for i in range(1, MAX_GENERATIONS + 1)]
 
         values = []
         Value , maxv = 0 , 0
-        for y in range(0, MAX_GENERATIONS):
-            (Population, Value) = genentic_Algorithm(Population, AllObjects, MAX_Weight)
+        for y in trange(MAX_GENERATIONS, desc='Test %s' % i):
+            (population, Value) = genentic_Algorithm(population, AllObjects, MAX_Weight)
             values.append(Value)
             if Value > maxv:
                 maxv = Value
