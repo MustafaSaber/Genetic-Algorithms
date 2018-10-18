@@ -9,7 +9,7 @@ from tqdm import trange
 # a sample from POP will be 0 1 0 1 0
 
 # It says that we took the second and fourth item.4 1
-POP_Size = 100
+POP_Size = 300
 # Maximum number of generations
 MAX_GENERATIONS = 300
 
@@ -17,7 +17,7 @@ MAX_GENERATIONS = 300
 P_crossOver = 0.4
 
 # Probability of mutation between [ 0.001 , 0.1 ]
-P_Mutation = 0.01
+P_Mutation = 0.05
 
 
 def create_population(all_objects):
@@ -76,9 +76,9 @@ def genentic_Algorithm(pop , AllObjects , MAX_Weight):
         idx2 = bisect.bisect_left(fitness_array_cumlative, r2)
         (Offspring1, Offspring2) = cross_over(pop[idx1], pop[idx2] , AllObjects)
         mutate(Offspring1)
-        mutate(Offspring2)
+        # mutate(Offspring2)
         next_pop.append(Offspring1)
-        next_pop.append(Offspring2)
+        # next_pop.append(Offspring2)
 
 
     next_gen_fitness = pop_fitness(next_pop, AllObjects, MAX_Weight)
@@ -113,18 +113,18 @@ def main():
     for i in trange(T, desc='Total'):
         N = int(infile.readline())
         MAX_Weight = int(infile.readline())
-        AllObjects =[]
+        all_objects =[]
         for item in range(N):
             (v, w) = infile.readline().split()
-            AllObjects.append(Object(int(w), int(v)))
-        population = create_population(AllObjects)
+            all_objects.append(Object(int(w), int(v)))
+        population = create_population(all_objects)
 
         counter = [i for i in range(1, MAX_GENERATIONS + 1)]
 
         values = []
         Value , maxv = 0 , 0
         for y in trange(MAX_GENERATIONS, desc='Test %s' % i):
-            (population, Value) = genentic_Algorithm(population, AllObjects, MAX_Weight)
+            (population, Value) = genentic_Algorithm(population, all_objects, MAX_Weight)
             values.append(Value)
             if Value > maxv:
                 maxv = Value
