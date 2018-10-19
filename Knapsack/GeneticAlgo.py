@@ -1,7 +1,7 @@
-from Object import Object
+from Knapsack.Object import Object
 import random
 import bisect
-import FitnessFunction as ff
+import Knapsack.FitnessFunction as ff
 import matplotlib.pyplot as plt
 from tqdm import trange
 from joblib import Parallel, delayed
@@ -12,34 +12,34 @@ import multiprocessing
 # a sample from POP will be 0 1 0 1 0
 
 # It says that we took the second and fourth item.4 1
-POP_Size = 300
+pop_size = 300
 # Maximum number of generations
-MAX_GENERATIONS = 400
+max_generations = 400
 
 # Probability of crossover between [ 0.4 , 0.7 ]
-P_crossOver = 0.5
+p_crossover = 0.5
 
 # Probability of mutation between [ 0.001 , 0.1 ]
-P_Mutation = 0.05
+p_mutation = 0.05
 
 
 def create_population(all_objects):
-    return [[random.randint(0, 1) for i in range(0, len(all_objects))] for n in range(0, POP_Size)]
+    return [[random.randint(0, 1) for _ in range(0, len(all_objects))] for _ in range(0, pop_size)]
 
 
 def mutate(solution):
     for i in range(0, len(solution)):
         r = random.uniform(0, 1)
-        if r <= P_Mutation:
-            solution[i] = solution[i]^1
+        if r <= p_mutation:
+            solution[i] = solution[i] ^ 1
 
 
 # The probability of crossover will be before we call the function
-def cross_over(parent1, parent2 , AllObjects):
-    r1 = random.randint(1, len(AllObjects)-1)
+def cross_over(parent1, parent2 , all_objects):
+    r1 = random.randint(1, len(all_objects)-1)
     r2 = random.uniform(0, 1)
     parent1, parent2 = list(parent1), list(parent2)
-    if r2 <= P_crossOver:
+    if r2 <= p_crossover:
         child1 = parent1[:r1] + parent2[r1:]
         child2 = parent2[:r1] + parent1[r1:]
         return child1, child2
@@ -48,43 +48,43 @@ def cross_over(parent1, parent2 , AllObjects):
 
 
 # Will be used in selection
-def cumulative_sum(list):
-    New = []
+def cumulative_sum(fitness_list):
+    new = []
     total_sum = 0
-    for i in list:
+    for i in fitness_list:
         total_sum += i
-        New.append(total_sum)
-    return New
+        new.append(total_sum)
+    return new
 
 
-def pop_fitness(Pop , AllObjects , MAX_Weight):
-    return [ff.fitness(i, AllObjects, MAX_Weight) for i in Pop]
+def pop_fitness(pop, all_objects, max_weight):
+    return [ff.fitness(i, all_objects, max_weight) for i in pop]
 
-def genentic_algorithm(pop , AllObjects , MAX_Weight):
 
-    fitness_array = pop_fitness(pop , AllObjects , MAX_Weight)
+def genetic_algorithm(pop, all_objects, max_weight):
+
+    fitness_array = pop_fitness(pop, all_objects, max_weight)
     fitness_array_cumlative = cumulative_sum(fitness_array)
     summation = fitness_array_cumlative[len(fitness_array_cumlative) - 1]
 
-    #counter = [i for i in range(1, len(Pop)+1)]
-    #plt.plot(counter, fitness_array)
-    #plt.xlabel('chromosome')
-    #plt.ylabel('fitness of chromosome')
-    #plt.show()
+    # counter = [i for i in range(1, len(Pop)+1)]
+    # plt.plot(counter, fitness_array)
+    # plt.xlabel('chromosome')
+    # plt.ylabel('fitness of chromosome')
+    # plt.show()
 
     next_pop = []
     while len(next_pop) < len(pop):
         r1, r2 = random.randint(0, summation), random.randint(0, summation)
         idx1 = bisect.bisect_left(fitness_array_cumlative, r1)
         idx2 = bisect.bisect_left(fitness_array_cumlative, r2)
-        (Offspring1, Offspring2) = cross_over(pop[idx1], pop[idx2] , AllObjects)
+        (Offspring1, Offspring2) = cross_over(pop[idx1], pop[idx2], all_objects)
         mutate(Offspring1)
         mutate(Offspring2)
         next_pop.append(Offspring1)
         next_pop.append(Offspring2)
 
-
-    next_gen_fitness = pop_fitness(next_pop, AllObjects, MAX_Weight)
+    next_gen_fitness = pop_fitness(next_pop, all_objects, max_weight)
     pip_size = len(pop)
     #Take best of previous and best of new.
     next_gen = []
@@ -102,60 +102,59 @@ def genentic_algorithm(pop , AllObjects , MAX_Weight):
         next_gen.append(next_pop[m1])
         next_pop.remove(next_pop[m1])
 
-    gen_fitness = pop_fitness(next_gen , AllObjects , MAX_Weight)
-    gen_fitness.sort(reverse=True)
-    best_val_old_pop = gen_fitness[0]
+    gen_fitness = pop_fitness(next_gen, all_objects, max_weight)
+    best_val_old_pop = max(gen_fitness)
 
     return next_gen, best_val_old_pop
 
-def run_testcase(N, MAX_Weight, v, w, test_num):
-    all_objects =[]
-    for j in range(N):
+
+def run_testcase(n, max_weight, v, w, test_num):
+    all_objects = []
+    for j in range(n):
         all_objects.append(Object(int(w[j]), int(v[j])))
     population = create_population(all_objects)
 
     # counter = [i for i in range(1, MAX_GENERATIONS + 1)]
 
     values = []
-    Value , maxv = 0 , 0
-    for y in range(MAX_GENERATIONS):
-        (population, Value) = genentic_algorithm(population, all_objects, MAX_Weight)
-        values.append(Value)
-        if Value > maxv:
-            maxv = Value
-        #plt.plot(counter, values)
-        #plt.xlabel('generation number')
-        #plt.ylabel('fitness of generation')
-        #plt.show()
+    value, max_value = 0, 0
+    for y in range(max_generations):
+        (population, value) = genetic_algorithm(population, all_objects, max_weight)
+        values.append(value)
+        if value > max_value:
+            max_value = value
+        # plt.plot(counter, values)
+        # plt.xlabel('generation number')
+        # plt.ylabel('fitness of generation')
+        # plt.show()
         # outfile.write('Case: %d , value: %d\n' % (cases, maxv))
-    return maxv
+    return max_value
+
 
 def main():
-    outfile = open("output.txt", 'w')
+    # outfile = open("output.txt", 'w')
 
-    T = 0
-    N = []
-    MAX_Weight = []
+    n = []
+    max_weight = []
     v = []
     w = []
 
     # Read all input from file
     with open('input.txt', 'r') as infile:
-        T = int(infile.readline())
-        for i in range(T):
-            N.append(int(infile.readline()))
-            MAX_Weight.append(int(infile.readline()))
+        t = int(infile.readline())
+        for i in range(t):
+            n.append(int(infile.readline()))
+            max_weight.append(int(infile.readline()))
             v.append([])
             w.append([])
-            for j in range(N[i]):
+            for j in range(n[i]):
                 a, b = infile.readline().split()
                 v[i].append(a)
                 w[i].append(b)
-            
 
     num_cores = multiprocessing.cpu_count()
-    results = Parallel(n_jobs=num_cores)(delayed(run_testcase)(N[i], MAX_Weight[i], v[i], w[i], i)
-                        for i in trange(T, desc='Total', ascii=True))
+    results = Parallel(n_jobs=num_cores)(delayed(run_testcase)(n[i], max_weight[i], v[i], w[i], i)
+                        for i in trange(t, desc='Total', ascii=True))
     
     with open("output.txt", 'w') as outfile:
         for case, val in enumerate(results):
