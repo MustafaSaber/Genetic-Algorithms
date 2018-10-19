@@ -4,6 +4,7 @@ import bisect
 import Knapsack.FitnessFunction as ff
 import matplotlib.pyplot as plt
 from tqdm import trange
+import matplotlib.pyplot as plt
 # The size of solutions, everyone of it will be a solution wih the size of all objects.
 # I have 5 Items
 # a sample from POP will be 0 1 0 1 0
@@ -11,14 +12,16 @@ from tqdm import trange
 # It says that we took the second and fourth item.4 1
 POP_Size = 300
 # Maximum number of generations
-MAX_GENERATIONS = 300
+MAX_GENERATIONS = 275
+
+all_objects = []
+
+max_weight = 0
 
 # Probability of crossover between [ 0.4 , 0.7 ]
-P_crossOver = 0.4
+P_crossover = 0.4
 
-# Probability of mutation between [ 0.001 , 0.1 ]
-P_Mutation = 0.05
-
+P_mutation = 0.1
 
 def create_population(all_objects):
     return [[random.randint(0, 1) for i in range(0, len(all_objects))] for n in range(0, POP_Size)]
@@ -27,32 +30,31 @@ def create_population(all_objects):
 def mutate(solution):
     for i in range(0, len(solution)):
         r = random.uniform(0, 1)
-        if r <= P_Mutation:
-            solution[i] = solution[i]^1
+        if r <= P_mutation:
+            solution[i] = solution[i] ^ 1
 
 
 # The probability of crossover will be before we call the function
 def cross_over(Parent1, Parent2 , AllObjects):
     r1 = random.randint(1, len(AllObjects)-1)
     r2 = random.uniform(0, 1)
-    Parent1, Parent2 = list(Parent1), list(Parent2)
-    if r2 <= P_crossOver:
-        child1 = Parent1[:r1] + Parent2[r1:]
-        child2 = Parent2[:r1] + Parent1[r1:]
+    parent1, parent2 = list(Parent1), list(Parent2)
+    if r2 <= P_crossover:
+        child1 = parent1[:r1] + parent2[r1:]
+        child2 = parent2[:r1] + parent1[r1:]
         return child1, child2
     else:
-        return Parent1, Parent2
+        return parent1, parent2
 
 
 # Will be used in selection
-def cumulative_sum(list):
-    New = []
+def cumulative_sum(fitness_list):
+    new = []
     total_sum = 0
-    for i in list:
+    for i in fitness_list:
         total_sum += i
-        New.append(total_sum)
-    return New
-
+        new.append(total_sum)
+    return new
 
 def pop_fitness(Pop , AllObjects , MAX_Weight):
     return [ff.fitness(i, AllObjects, MAX_Weight) for i in Pop]
@@ -62,12 +64,11 @@ def genentic_Algorithm(pop , AllObjects , MAX_Weight):
     fitness_array = pop_fitness(pop , AllObjects , MAX_Weight)
     fitness_array_cumlative = cumulative_sum(fitness_array)
     summation = fitness_array_cumlative[len(fitness_array_cumlative) - 1]
-
-    #counter = [i for i in range(1, len(Pop)+1)]
-    #plt.plot(counter, fitness_array)
-    #plt.xlabel('chromosome')
-    #plt.ylabel('fitness of chromosome')
-    #plt.show()
+    # counter = [i for i in range(1, len(Pop)+1)]
+    # plt.plot(counter, fitness_array)
+    # plt.xlabel('chromosome')
+    # plt.ylabel('fitness of chromosome')
+    # plt.show()
 
     next_pop = []
     while len(next_pop) < len(pop):
@@ -128,12 +129,12 @@ def main():
             values.append(Value)
             if Value > maxv:
                 maxv = Value
-        #plt.plot(counter, values)
-        #plt.xlabel('generation number')
-        #plt.ylabel('fitness of generation')
-        #plt.show()
+        # plt.plot(counter, values)
+        # plt.xlabel('generation number')
+        # plt.ylabel('fitness of generation')
+        # plt.show()
         outfile.write('Case: %d , value: %d\n' % (cases, maxv))
-        cases+=1
+        cases += 1
 
     outfile.close()
     infile.close()
