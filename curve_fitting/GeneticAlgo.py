@@ -7,9 +7,9 @@ from tqdm import trange
 from joblib import Parallel, delayed
 import multiprocessing
 
-pop_size = 200
+pop_size = 400
 # Maximum number of generations
-max_generations = 500
+max_generations = 1000
 
 # Probability of crossover between [ 0.4 , 0.7 ]
 p_crossover = 0.65
@@ -67,6 +67,8 @@ def genetic_algorithm(pop, points, generation_number):
     # print(fitness_array)
     fitness_array_cumlative = cumulative_sum(fitness_array)
     summation = fitness_array_cumlative[len(fitness_array_cumlative) - 1]
+    # Proof that the value converges
+    # print("%f && %f " % (min(fitness_array), max(fitness_array)))
     next_pop = []
     while len(next_pop) < len(pop):
         r1, r2 = random.uniform(0, summation), random.uniform(0, summation)
@@ -148,7 +150,7 @@ def main():
 
     infile = open('input.txt', 'r')
     outfile = open('output.txt', 'w')
-    outfile2 = open('output2.txt', 'w')
+    # outfile2 = open('output2.txt', 'w')
     test_cases = int(infile.readline())
     for i in range(test_cases):
         (n, d) = infile.readline().split()
@@ -165,21 +167,21 @@ def main():
             if value < min_val:
                 count = 0
                 min_val, min_chromosome = value, chromosome
-            if count == 100:
+            if count == 250:
                 break
             # print(" value: %d" % max_val)
         outfile.write('Case: %d \n' % (i+1))
         for f in min_chromosome:
             outfile.write(str(f) + ' ')
-        outfile.write(" value: %d \n" % min_val)
-        print(" value: %d" % min_val)
+        outfile.write(" value: %f \n" % min_val)
+        print(" value: %f" % min_val)
         x_axis = [i.x for i in points]
         y_axis = [i.y for i in points]
         plt.plot(x_axis, y_axis)
-        outfile2.write('case: %d \n' % (i+1))
+        # outfile2.write('case: %d \n' % (i+1))
         y_calculated = ff.calculate_y(min_chromosome, points)
-        for z in range(len(points)):
-            outfile2.write('%f %f\n' % (points[z].x , y_calculated[z]))
+        # for z in range(len(points)):
+        #    outfile2.write('%f %f\n' % (points[z].x , y_calculated[z]))
         plt.plot(x_axis, y_calculated, linestyle='-.')
         plt.show()
     outfile.close()
