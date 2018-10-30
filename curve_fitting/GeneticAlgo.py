@@ -1,7 +1,7 @@
-from curve_fitting.Object import Object
+from Object import Object
 import random
 import bisect
-import curve_fitting.FitnessFunction as ff
+import FitnessFunction as ff
 import matplotlib.pyplot as plt
 from tqdm import trange
 from joblib import Parallel, delayed
@@ -35,7 +35,7 @@ def mutate(chromosome, generation_number):
 
 
 def cross_over(parent1, parent2):
-    r1 = random.randint(1, len(parent1)-1)
+    r1 = random.randint(1, len(parent1) - 1)
     r2 = random.uniform(0, 1)
     parent1, parent2 = list(parent1), list(parent2)
     if r2 <= p_crossover:
@@ -147,17 +147,34 @@ def main():
     #             outfile.write(str(f) + ' ')
     #         outfile.write(" value: %d \n" % val)
 
-    infile = open('input.txt', 'r')
+    infile = open('input_examples.txt', 'r')
     outfile = open('output.txt', 'w')
     # outfile2 = open('output2.txt', 'w')
+
+
+    plt.ion()
+    fig = plt.figure()
+    plt.axis([-1, 50, -1, 50])
+    ax = fig.add_subplot(111)
+    pred_line, = ax.plot([], [], linestyle='-.')
+    org_line, = ax.plot([], [], '-b')
+    
+
     test_cases = int(infile.readline())
     for i in range(test_cases):
         (n, d) = infile.readline().split()
         n_points, degree = int(n), int(d)
         points = []
+
         for j in range(n_points):
             (x, y) = infile.readline().split()
             points.append(Object(float(x), float(y)))
+        
+        x_axis = [i.x for i in points]
+        y_axis = [i.y for i in points]
+        org_line.set_xdata(x_axis)
+        org_line.set_ydata(y_axis)
+        
         population = create_population(degree)
         max_val, max_chromosome, count = 0.0, [], 0
         for y in range(max_generations):
@@ -181,8 +198,10 @@ def main():
         y_calculated = ff.calculate_y(max_chromosome, points)
         # for z in range(len(points)):
         #    outfile2.write('%f %f\n' % (points[z].x , y_calculated[z]))
-        plt.plot(x_axis, y_calculated, linestyle='-.')
-        plt.show()
+
+        # plt.plot(x_axis, y_calculated, linestyle='-.')
+        # plt.show()
+
     outfile.close()
     infile.close()
 
