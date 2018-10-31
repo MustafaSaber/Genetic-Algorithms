@@ -35,7 +35,7 @@ def mutate(chromosome, generation_number):
         power = (1 - generation_number/max_generations) ** dependency_factor
         delta = val * (1 - r2 ** power)
         if r3 <= p_mutation * (1 - generation_number / max_generations):
-            chromosome[i] = chromosome[i] + random.uniform(-10, 10)
+            chromosome[i] = random.uniform(-10, 10)
 
 
 def cross_over(parent1, parent2):
@@ -143,28 +143,19 @@ def run_testcase(n, d, x, y):
     return max_value, max_chromosome
 
 
-def main():
-    # num_cores = multiprocessing.cpu_count()
-    # results = Parallel(n_jobs=num_cores)(delayed(run_testcase)(n[i], d[i], x[i], y[i])
-    #                      for i in trange(t, desc='Total', ascii=True))
+class Point():
+    def __init__(self, x, y):
+        self.x = float(x)
+        self.y = float(y)
 
-    infile = open('input_examples.txt', 'r')
-    outfile = open('output.txt', 'w')
-    # outfile2 = open('output2.txt', 'w')
 
-    test_cases = int(infile.readline())
-    for i in range(test_cases):
-        (n, d) = infile.readline().split()
-        n_points, degree = int(n), int(d)
-        points = []
-
-        for j in range(n_points):
-            (x, y) = infile.readline().split()
-            points.append(Object(float(x), float(y)))
-
-        x_axis = [i.x for i in points]
-        y_axis = [i.y for i in points]
-        graph.update_org(x_axis, y_axis)
+class TestCase():
+    def __init__(self, n, degree, idx):
+        self.n = n
+        self.degree = degree
+        self.idx = idx
+        self.points = []
+        self.graph = Graph()
 
         population = create_population(degree)
         max_val, max_chromosome, count = 0.0, [], 0
@@ -194,7 +185,6 @@ def main():
         # plt.show()
 
     outfile.close()
-    infile.close()
 
 
 if __name__ == '__main__':
