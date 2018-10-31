@@ -3,7 +3,7 @@
 
 
 def calculate_y(chromosome, points):
-    """ chromosome list has the current coefficient values
+    """ Chromosome list has the current coefficient values
      the length of the list is it's degree"""
     y_calculated = []
     for i in range(len(points)):
@@ -15,6 +15,7 @@ def calculate_y(chromosome, points):
 
 
 def fitness(chromosome, points):
+    """ Mean square error """
     y_calculated, total_sum = calculate_y(chromosome, points), 0
     for i in range(len(points)):
         total_sum += ((points[i].y - y_calculated[i]) ** 2)
