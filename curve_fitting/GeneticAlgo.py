@@ -11,20 +11,17 @@ from graph import Graph
 import time
 
 
-pop_size = 400
+pop_size = 100
 # Maximum number of generations
-max_generations = 500
+max_generations = 100
 
 # Probability of crossover between [ 0.4 , 0.7 ]
 p_crossover = 0.7
 
 # Probability of mutation between [ 0.001 , 0.1 ]
-p_mutation = 0.15
+p_mutation = 0.1
 
-dependency_factor = 0.7
-
-
-graph = Graph()
+dependency_factor = 0.5
 
 
 def create_population(degree):
@@ -39,7 +36,7 @@ def mutate(chromosome, generation_number):
         power = (1 - generation_number / max_generations) ** dependency_factor
         delta = val * (1 - r2 ** power)
         if r3 <= p_mutation * (1 - generation_number / max_generations):
-            chromosome[i] = chromosome[i] + random.uniform(-10, 10)
+            chromosome[i] = random.uniform(-10, 10)
 
 
 # The probability of crossover will be before we call the function
@@ -150,54 +147,71 @@ def run_testcase(n, d, x, y):
     return max_value, max_chromosome
 
 
+class Point():
+    def __init__(self, x, y):
+        self.x = float(x)
+        self.y = float(y)
+
+
+class TestCase():
+    def __init__(self, n, degree, idx):
+        self.n = n
+        self.degree = degree
+        self.idx = idx
+        self.points = []
+        self.graph = Graph()
+
+    def __call__(self):
+        x_axis = [i.x for i in self.points]
+        y_axis = [i.y for i in self.points]
+        self.graph.update_org(x_axis, y_axis)
+        population = create_population(self.degree)
+        min_val, min_chromosome = math.inf, []
+
+        for y in trange(max_generations, ascii=True, desc='Generation'):
+            (population, value, chromosome) = genetic_algorithm(
+                population, self.points, y)
+
+            if value < min_val:
+                min_val, min_chromosome = value, chromosome
+                y_calculated = ff.calculate_y(min_chromosome, self.points)
+                self.graph.update_pred(x_axis, y_calculated)
+
+        self.graph.save('graphs/case %s.png' % self.idx)
+        return min_chromosome, min_val
+
+
 def main():
     # num_cores = multiprocessing.cpu_count()
     # results = Parallel(n_jobs=num_cores)(delayed(run_testcase)(n[i], d[i], x[i], y[i])
     #                      for i in trange(t, desc='Total', ascii=True))
 
-    infile = open('input_examples.txt', 'r')
+    test_cases = []
+    with open('input_examples.txt', 'r') as f:
+        num_tests = int(f.readline())
+        for i in range(num_tests):
+            (n, d) = f.readline().split()
+            n, degree = int(n), int(d)
+
+            test_case = TestCase(n, degree, i)
+            for _ in range(n):
+                (x, y) = f.readline().split()
+                test_case.points.append(Point(x, y))
+            test_cases.append(test_case)
+
     outfile = open('output.txt', 'w')
     # outfile2 = open('output2.txt', 'w')
 
-    test_cases = int(infile.readline())
-    for i in range(test_cases):
-        (n, d) = infile.readline().split()
-        n_points, degree = int(n), int(d)
-        points = []
+    for i, test in enumerate(test_cases):
+        min_chromosome, min_val = test()
 
-        for j in range(n_points):
-            (x, y) = infile.readline().split()
-            points.append(Object(float(x), float(y)))
-
-        x_axis = [i.x for i in points]
-        y_axis = [i.y for i in points]
-        graph.update_org(x_axis, y_axis)
-
-        population = create_population(degree)
-        min_val, min_chromosome, count = math.inf, [], 0
-
-        for y in trange(max_generations, ascii=True, desc='Generation'):
-            (population, value, chromosome) = genetic_algorithm(
-                population, points, y)
-            count += 1
-
-            if value < min_val:
-                count = 0
-                min_val, min_chromosome = value, chromosome
-                y_calculated = ff.calculate_y(min_chromosome, points)
-                graph.update_pred(x_axis, y_calculated)
-            # if count == 250:
-            #     break
-            # print(" value: %d" % max_val)
-        outfile.write('Case: %d \n' % (i+1))
-
+        outfile.write('Case: %d \n' % (i + 1))
         for f in min_chromosome:
             outfile.write(str(f) + ' ')
         outfile.write(" value: %f \n" % min_val)
         print(" value: %f" % min_val)
 
     outfile.close()
-    infile.close()
 
 
 if __name__ == '__main__':
