@@ -34,7 +34,6 @@ def mutate(chromosome, generation_number):
             chromosome[i] = chromosome[i] - delta if r1 <= 0.5 else chromosome[i] + delta
 
 
-# The probability of crossover will be before we call the function
 def cross_over(parent1, parent2):
     r1 = random.randint(1, len(parent1)-1)
     r2 = random.uniform(0, 1)
