@@ -7,15 +7,15 @@ from tqdm import trange
 from joblib import Parallel, delayed
 import multiprocessing
 
-pop_size = 400
+pop_size = 500
 # Maximum number of generations
-max_generations = 1000
+max_generations = 10000
 
 # Probability of crossover between [ 0.4 , 0.7 ]
 p_crossover = 0.65
 
 # Probability of mutation between [ 0.001 , 0.1 ]
-p_mutation = 1/pop_size
+p_mutation = 0.1
 
 dependency_factor = 0.5
 
@@ -27,7 +27,7 @@ def create_population(degree):
 def mutate(chromosome, generation_number):
     for i in range(0, len(chromosome)):
         r1, r2, r3 = random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)
-        val = -10 if r1 <= 0.5 else 10
+        val = (chromosome[i] + 10) if r1 <= 0.5 else (10 - chromosome[i])
         power = (1 - generation_number/max_generations) ** dependency_factor
         delta = val * (1 - r2 ** power)
         if r3 <= p_mutation:
@@ -85,22 +85,22 @@ def genetic_algorithm(pop, points, generation_number):
     # Take best of previous and best of new.
     next_gen = []
     for i in range(len(pop)//2):
-        m1, m2 = fitness_array.index(min(fitness_array)), next_gen_fitness.index(min(next_gen_fitness))
+        m1, m2 = fitness_array.index(max(fitness_array)), next_gen_fitness.index(max(next_gen_fitness))
         next_gen.append(pop[m1])
         next_gen.append(next_pop[m2])
         pop.remove(pop[m1])
         next_pop.remove(next_pop[m2])
-        fitness_array.remove(min(fitness_array))
-        next_gen_fitness.remove(min(next_gen_fitness))
+        fitness_array.remove(max(fitness_array))
+        next_gen_fitness.remove(max(next_gen_fitness))
 
     while len(next_gen) < pip_size:
-        m1 = next_gen_fitness.index(min(next_gen_fitness))
+        m1 = next_gen_fitness.index(max(next_gen_fitness))
         next_gen.append(next_pop[m1])
         next_pop.remove(next_pop[m1])
 
     gen_fitness = pop_fitness(next_gen, points)
-    best_val_old_pop = min(gen_fitness)
-    best_chromosome = next_gen[gen_fitness.index(min(gen_fitness))]
+    best_val_old_pop = max(gen_fitness)
+    best_chromosome = next_gen[gen_fitness.index(max(gen_fitness))]
 
     return next_gen, best_val_old_pop, best_chromosome
 
@@ -160,26 +160,26 @@ def main():
             (x, y) = infile.readline().split()
             points.append(Object(float(x), float(y)))
         population = create_population(degree)
-        min_val, min_chromosome, count = 20000000000000000, [], 0
+        max_val, max_chromosome, count = 0.0, [], 0
         for y in range(max_generations):
             (population, value, chromosome) = genetic_algorithm(population, points, y)
             count += 1
-            if value < min_val:
+            if value > max_val:
                 count = 0
-                min_val, min_chromosome = value, chromosome
-            if count == 250:
-                break
+                max_val, max_chromosome = value, chromosome
+            # if count == 250:
+            #     break
             # print(" value: %d" % max_val)
         outfile.write('Case: %d \n' % (i+1))
-        for f in min_chromosome:
+        for f in max_chromosome:
             outfile.write(str(f) + ' ')
-        outfile.write(" value: %f \n" % min_val)
-        print(" value: %f" % min_val)
+        outfile.write(" value: %f \n" % max_val)
+        print(" value: %f" % max_val)
         x_axis = [i.x for i in points]
         y_axis = [i.y for i in points]
-        plt.plot(x_axis, y_axis)
+        plt.plot(x_axis, y_axis, 'ro')
         # outfile2.write('case: %d \n' % (i+1))
-        y_calculated = ff.calculate_y(min_chromosome, points)
+        y_calculated = ff.calculate_y(max_chromosome, points)
         # for z in range(len(points)):
         #    outfile2.write('%f %f\n' % (points[z].x , y_calculated[z]))
         plt.plot(x_axis, y_calculated, linestyle='-.')
