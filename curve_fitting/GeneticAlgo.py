@@ -31,8 +31,8 @@ def mutate(chromosome, generation_number):
         val = (chromosome[i] + 10) if r1 <= 0.5 else (10 - chromosome[i])
         power = (1 - generation_number/max_generations) ** dependency_factor
         delta = val * (1 - r2 ** power)
-        if r3 <= p_mutation * (1 - generation_number / max_generations):
-            chromosome[i] = random.uniform(-10, 10)
+        if r3 <= p_mutation:
+            chromosome[i] = chromosome[i] - delta if r1 <= 0.5 else chromosome[i] + delta
 
 
 def cross_over(parent1, parent2):
