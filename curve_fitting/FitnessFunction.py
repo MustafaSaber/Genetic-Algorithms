@@ -6,10 +6,10 @@ def calculate_y(chromosome, points):
     """ Chromosome list has the current coefficient values
      the length of the list is it's degree"""
     y_calculated = []
-    for i in range(len(points)):
+    for point in points:
         y_temp = 0
         for j in range(len(chromosome)):
-            y_temp += chromosome[j] * (points[i].x ** j)
+            y_temp += chromosome[j] * (point.x ** j)
         y_calculated.append(y_temp)
     return y_calculated
 
