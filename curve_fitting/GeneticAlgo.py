@@ -1,11 +1,12 @@
-from curve_fitting.Object import Object
+from Object import Object
 import random
 import bisect
-import curve_fitting.FitnessFunction as ff
+import FitnessFunction as ff
 import matplotlib.pyplot as plt
 from tqdm import trange
 from joblib import Parallel, delayed
 import multiprocessing
+from graph import Graph
 
 pop_size = 500
 # Maximum number of generations
@@ -147,28 +148,43 @@ def main():
     #             outfile.write(str(f) + ' ')
     #         outfile.write(" value: %d \n" % val)
 
+
     infile = open('input.txt', 'r')
     outfile = open('output.txt', 'w')
     # outfile2 = open('output2.txt', 'w')
+
+    graph = Graph()
+
     test_cases = int(infile.readline())
     for i in range(test_cases):
         (n, d) = infile.readline().split()
         n_points, degree = int(n), int(d)
+
         points = []
         for j in range(n_points):
             (x, y) = infile.readline().split()
             points.append(Object(float(x), float(y)))
+
+        x_axis = [i.x for i in points]
+        y_axis = [i.y for i in points]
+        graph.update_org(x_axis, y_axis)
+
         population = create_population(degree)
         max_val, max_chromosome, count = 0.0, [], 0
-        for y in range(max_generations):
+
+        for y in trange(max_generations):
             (population, value, chromosome) = genetic_algorithm(population, points, y)
             count += 1
             if value > max_val:
                 count = 0
                 max_val, max_chromosome = value, chromosome
+                y_calculated = ff.calculate_y(max_chromosome, points)
+                graph.update_pred(x_axis, y_calculated)
+
             # if count == 250:
             #     break
             # print(" value: %d" % max_val)
+        
         outfile.write('Case: %d \n' % (i+1))
         for f in max_chromosome:
             outfile.write(str(f) + ' ')
@@ -183,6 +199,7 @@ def main():
         #    outfile2.write('%f %f\n' % (points[z].x , y_calculated[z]))
         plt.plot(x_axis, y_calculated, linestyle='-.')
         plt.show()
+    
     outfile.close()
     infile.close()
 
