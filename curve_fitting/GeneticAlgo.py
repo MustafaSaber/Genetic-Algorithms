@@ -77,52 +77,30 @@ def genetic_algorithm(pop, points, generation_number):
     # print(fitness_array)
     fitness_array_cumlative = cumulative_sum(fitness_array)
     summation = fitness_array_cumlative[len(fitness_array_cumlative) - 1]
+
     # Proof that the value converges
     # print("%f && %f " % (min(fitness_array), max(fitness_array)))
+
     next_pop = []
-    while len(next_pop) < len(pop):
+    for _ in range(pop_size):
         r1, r2 = random.uniform(0, summation), random.uniform(0, summation)
         idx1 = bisect.bisect_left(fitness_array_cumlative, r1)
         idx2 = bisect.bisect_left(fitness_array_cumlative, r2)
 
-        Offspring1, Offspring2 = cross_over_non_uniform(pop[idx1], pop[idx2])
+        Offspring1, Offspring2 = cross_over(pop[idx1], pop[idx2])
 
         mutate(Offspring1, generation_number)
         mutate(Offspring2, generation_number)
         next_pop.append(Offspring1)
         next_pop.append(Offspring2)
 
-    next_gen_fitness = pop_fitness(next_pop, points)
-    pip_size = len(pop)
-    # Take best of previous and best of new.
-    next_gen = []
-    for i in range(len(pop)//2):
-        m1, m2 = fitness_array.index(max(fitness_array)), next_gen_fitness.index(max(next_gen_fitness))
-        next_gen.append(pop[m1])
-        next_gen.append(next_pop[m2])
+    # Merge the new and old populations and take the best of both
+    pop = pop + next_pop
+    pop.sort(key=lambda x: ff.fitness(x, points), reverse=True)
+    next_gen = pop[:pop_size]
 
-        pop.remove(pop[m1])
-        next_pop.remove(next_pop[m2])
-        fitness_array.remove(max(fitness_array))
-        next_gen_fitness.remove(max(next_gen_fitness))
-
-    while len(next_gen) < pip_size:
-        m1 = next_gen_fitness.index(max(next_gen_fitness))
-        next_gen.append(next_pop[m1])
-        next_pop.remove(next_pop[m1])
-
-    gen_fitness = pop_fitness(next_gen, points)
-    best_val_old_pop = max(gen_fitness)
-    best_chromosome = next_gen[gen_fitness.index(max(gen_fitness))]
-
-    # x_axis = [i.x for i in points]
-    # for i, chromosome in enumerate(next_gen):
-    #     if i == 10:
-    #         break
-    #     time.sleep(1)
-    #     print(chromosome)
-    #     y_calculated = ff.calculate_y(chromosome, points)
-    #     graph.update_example(x_axis, y_calculated)
+    best_chromosome = next_gen[0]
+    best_val_old_pop = ff.fitness(best_chromosome, points)
 
     return next_gen, best_val_old_pop, best_chromosome
 
@@ -187,7 +165,7 @@ def main():
     #         outfile.write(" value: %d \n" % val)
 
 
-    infile = open('input.txt', 'r')
+    infile = open('input_examples.txt', 'r')
     outfile = open('output.txt', 'w')
     # outfile2 = open('output2.txt', 'w')
 
@@ -210,7 +188,7 @@ def main():
         population = create_population(degree)
         max_val, max_chromosome, count = 0.0, [], 0
 
-        for y in trange(max_generations):
+        for y in range(max_generations):
             (population, value, chromosome) = genetic_algorithm(population, points, y)
             count += 1
             if value > max_val:
@@ -218,10 +196,13 @@ def main():
                 max_val, max_chromosome = value, chromosome
                 y_calculated = ff.calculate_y(max_chromosome, points)
                 graph.update_pred(x_axis, y_calculated)
+                # print(max_chromosome)
+            print('%s / %s: %s' % (y, max_generations, max_chromosome), end='\r')
 
             # if count == 250:
             #     break
             # print(" value: %d" % max_val)
+        print('%s / %s: %s' % (y, max_generations, max_chromosome))
         
         outfile.write('Case: %d \n' % (i+1))
         for f in max_chromosome:

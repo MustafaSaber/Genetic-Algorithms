@@ -11,7 +11,7 @@ class Graph():
         self.ax = self.fig.add_subplot(111)
         self.pred_min_line, = self.ax.plot(
             [], [], linestyle='-.', color='green')
-        self.org_line, = self.ax.plot([], [], '-b')
+        self.org_line, = self.ax.plot([], [], 'ro')
         self.example_line, = self.ax.plot([], [], linestyle='-.', color='cyan')
         self.wait_time = 0.000001
 
