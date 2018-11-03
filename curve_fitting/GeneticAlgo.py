@@ -9,9 +9,11 @@ import multiprocessing
 from graph import Graph
 import math
 
-pop_size = 20
+random.seed(77)
+
+pop_size = 10
 # Maximum number of generations
-max_generations = 1000
+max_generations = 10000
 
 # Probability of crossover between [ 0.4 , 0.7 ]
 p_crossover = 0.5
@@ -30,9 +32,9 @@ def mutate(chromosome, generation_number):
     power = (1 - generation_number/max_generations) ** dependency_factor
     for i in range(len(chromosome)):
         r3 = random.uniform(0, 1)
-        if r3 <= p_mutation:
+        if r3 <= p_mutation * (i + 1):
             r1, r2 = random.uniform(0, 1), random.uniform(0, 1)
-            change = math.exp(-i)
+            change = math.exp(-i / (2 - generation_number / max_generations))
             # val = (chromosome[i] + change) if r1 <= 0.5 else (chromosome[i] - change)
             delta = change * (1 - r2 ** power)
             if chromosome[i] + delta > 10:
