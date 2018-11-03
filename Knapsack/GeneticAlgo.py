@@ -35,7 +35,7 @@ def mutate(solution):
 
 
 # The probability of crossover will be before we call the function
-def cross_over(parent1, parent2 , all_objects):
+def cross_over(parent1, parent2, all_objects):
     r1 = random.randint(1, len(all_objects)-1)
     r2 = random.uniform(0, 1)
     parent1, parent2 = list(parent1), list(parent2)
@@ -86,7 +86,7 @@ def genetic_algorithm(pop, all_objects, max_weight):
 
     next_gen_fitness = pop_fitness(next_pop, all_objects, max_weight)
     pip_size = len(pop)
-    #Take best of previous and best of new.
+    # Take best of previous and best of new.
     next_gen = []
     for i in range(len(pop)//2):
         m1, m2 = fitness_array.index(max(fitness_array)), next_gen_fitness.index(max(next_gen_fitness))
@@ -154,7 +154,7 @@ def main():
 
     num_cores = multiprocessing.cpu_count()
     results = Parallel(n_jobs=num_cores)(delayed(run_testcase)(n[i], max_weight[i], v[i], w[i], i)
-                        for i in trange(t, desc='Total', ascii=True))
+                         for i in trange(t, desc='Total', ascii=True))
     
     with open("output.txt", 'w') as outfile:
         for case, val in enumerate(results):

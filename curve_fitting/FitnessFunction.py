@@ -22,4 +22,3 @@ def fitness(chromosome, points):
     if total_sum == 0:
         return 10000000000000
     return 1/(total_sum/len(points))
-
