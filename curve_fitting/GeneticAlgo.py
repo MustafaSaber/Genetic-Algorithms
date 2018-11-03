@@ -11,7 +11,7 @@ import math
 
 random.seed(77)
 
-pop_size = 10
+pop_size = 20
 # Maximum number of generations
 max_generations = 10000
 
@@ -24,8 +24,8 @@ p_mutation = 0.1
 dependency_factor = 0.5
 
 
-def create_population(degree):
-    return [[random.uniform(-10, 10) for i in range(degree + 1)] for _ in range(pop_size)]
+def create_population(degree, _pop_size=pop_size):
+    return [[random.uniform(-10, 10) for i in range(degree + 1)] for _ in range(_pop_size)]
 
 
 def mutate(chromosome, generation_number):
@@ -105,7 +105,7 @@ def genetic_algorithm(pop, points, generation_number):
     # Merge the new and old populations and take the best of both
     pop = pop + next_pop
     pop.sort(key=lambda x: ff.fitness(x, points), reverse=True)
-    next_gen = pop[:pop_size]
+    next_gen = pop[:pop_size // 2] + create_population(len(pop[0]) - 1, pop_size // 2)
 
     best_chromosome = next_gen[0]
     best_val_old_pop = ff.fitness(best_chromosome, points)
