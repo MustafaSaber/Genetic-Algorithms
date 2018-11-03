@@ -7,13 +7,14 @@ from tqdm import trange
 from joblib import Parallel, delayed
 import multiprocessing
 from graph import Graph
+import math
 
-pop_size = 500
+pop_size = 20
 # Maximum number of generations
-max_generations = 10000
+max_generations = 1000
 
 # Probability of crossover between [ 0.4 , 0.7 ]
-p_crossover = 0.7
+p_crossover = 0.5
 
 # Probability of mutation between [ 0.001 , 0.1 ]
 p_mutation = 0.1
@@ -22,17 +23,24 @@ dependency_factor = 0.5
 
 
 def create_population(degree):
-    return [[random.uniform(-10, 10) for _ in range(degree + 1)] for _ in range(pop_size)]
+    return [[random.uniform(-10, 10) for i in range(degree + 1)] for _ in range(pop_size)]
 
 
 def mutate(chromosome, generation_number):
-    for i in range(0, len(chromosome)):
-        r1, r2, r3 = random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)
-        val = (chromosome[i] + 10) if r1 <= 0.5 else (10 - chromosome[i])
-        power = (1 - generation_number/max_generations) ** dependency_factor
-        delta = val * (1 - r2 ** power)
+    power = (1 - generation_number/max_generations) ** dependency_factor
+    for i in range(len(chromosome)):
+        r3 = random.uniform(0, 1)
         if r3 <= p_mutation:
-            chromosome[i] = chromosome[i] - delta if r1 <= 0.5 else chromosome[i] + delta
+            r1, r2 = random.uniform(0, 1), random.uniform(0, 1)
+            change = math.exp(-i)
+            # val = (chromosome[i] + change) if r1 <= 0.5 else (chromosome[i] - change)
+            delta = change * (1 - r2 ** power)
+            if chromosome[i] + delta > 10:
+                chromosome[i] -= delta
+            elif chromosome[i] - delta < -10:
+                chromosome[i] += delta
+            else:
+                chromosome[i] = chromosome[i] - delta if r1 <= 0.5 else chromosome[i] + delta
 
 
 def cross_over(parent1, parent2):
@@ -72,9 +80,7 @@ def pop_fitness(pop, points):
 
 
 def genetic_algorithm(pop, points, generation_number):
-
     fitness_array = pop_fitness(pop, points)
-    # print(fitness_array)
     fitness_array_cumlative = cumulative_sum(fitness_array)
     summation = fitness_array_cumlative[len(fitness_array_cumlative) - 1]
 
@@ -103,53 +109,6 @@ def genetic_algorithm(pop, points, generation_number):
     best_val_old_pop = ff.fitness(best_chromosome, points)
 
     return next_gen, best_val_old_pop, best_chromosome
-
-
-def run_testcase(n, d, x, y):
-    points = []
-    for j in range(n):
-        points.append(Object(float(x[j]), float(y[j])))
-    population = create_population(d)
-    max_chromosome, max_value = 0, 0
-    for y in range(max_generations):
-        (population, value, chromosome) = genetic_algorithm(population, points, y)
-        if value > max_value:
-            max_value, max_chromosome = value, chromosome
-    return max_value, max_chromosome
-
-
-class Point():
-    def __init__(self, x, y):
-        self.x = float(x)
-        self.y = float(y)
-
-
-class TestCase():
-    def __init__(self, n, degree, idx):
-        self.n = n
-        self.degree = degree
-        self.idx = idx
-        self.points = []
-        self.graph = Graph()
-
-    def __call__(self):
-        x_axis = [i.x for i in self.points]
-        y_axis = [i.y for i in self.points]
-        self.graph.update_org(x_axis, y_axis)
-        population = create_population(self.degree)
-        min_val, min_chromosome = math.inf, []
-
-        for y in trange(max_generations, ascii=True, desc='Generation'):
-            (population, value, chromosome) = genetic_algorithm(
-                population, self.points, y)
-
-            if value < min_val:
-                min_val, min_chromosome = value, chromosome
-                y_calculated = ff.calculate_y(min_chromosome, self.points)
-                self.graph.update_pred(x_axis, y_calculated)
-
-        self.graph.save('graphs/case %s.png' % self.idx)
-        return min_chromosome, min_val
 
 
 def main():
