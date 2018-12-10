@@ -5,9 +5,13 @@ def initialize_parameters(d):
     x, h, y = d
     np.random.seed(1)
     w1 = np.random.randn(h, x) * 0.01
+    # w1 = (h_l, x_l)
     b1 = np.zeros((h, 1))
+    # b1 = (h_l, 1)
     w2 = np.random.randn(y, h) * 0.01
+    # w2 = (y_l, h_l)
     b2 = np.zeros((y, 1))
+    # b2 = (y_l, 1)
 
     parameters = {'w1': w1, 'b1': b1, 'w2': w2, 'b2': b2}
 
@@ -15,8 +19,9 @@ def initialize_parameters(d):
 
 
 def compute_cost(a2, y):
-    m = y.shape[1]
-    se = np.power(a2 - y, 2)
+    m = y.shape[0]
+    e = a2.T - y
+    se = np.dot(e, e.T)
     mse = np.sum(se) / m
     mse = np.squeeze(mse)
     return mse

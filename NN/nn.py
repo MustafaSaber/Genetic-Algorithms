@@ -2,6 +2,7 @@ import numpy as np
 from NN import utilities as ut
 from NN import forward_propagation as fp
 from NN import backward_propagation as bp
+from sklearn.preprocessing import normalize
 
 
 def get_input():
@@ -18,7 +19,7 @@ def get_input():
     return x, y, d
 
 
-def nn_model(x, y, d, iterations=1000, print_cost=True):
+def nn_model(x, y, d, iterations=10, print_cost=True):
 
     parameters = ut.initialize_parameters(d)
 
@@ -29,7 +30,7 @@ def nn_model(x, y, d, iterations=1000, print_cost=True):
         grads = bp.backward_propagation(parameters, cache, x, y)
         parameters = ut.update_parameters(parameters, grads)
 
-        if print_cost and i % 100 == 0:
+        if print_cost and i % 1 == 0:
             print("Cost after iteration %i: %f" % (i, cost))
 
     return parameters
@@ -38,8 +39,10 @@ def nn_model(x, y, d, iterations=1000, print_cost=True):
 def main():
     x, y, d = get_input()
     x, y = np.array(x), np.array(y)
-    # x, y = np.squeeze(x.T), np.squeeze(y.T)
-    x, y = x.T, y.T
+    # x, y = x.T, y.T
+    # print(x.shape)
+    # print(y.shape)
+    # x = normalize(x, axis=0)
     parameters = nn_model(x, y, d)
     a2, _ = fp.forward_propagation(x, parameters)
     print(ut.compute_cost(a2, y))
