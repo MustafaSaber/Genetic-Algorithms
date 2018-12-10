@@ -1,9 +1,21 @@
 import numpy as np
 
 
+def sigmoid(z):
+    a = 1 / (1 + np.exp(-z))
+    cache = z
+    return a, cache
+
+
+def sigmoid_backward(da, cache):
+    z = cache
+    s = 1 / (1 + np.exp(-z))
+    dz = da * s * (1 - s)
+    return dz
+
+
 def initialize_parameters(d):
     x, h, y = d
-    np.random.seed(1)
     w1 = np.random.randn(h, x) * 0.01
     # w1 = (h_l, x_l)
     b1 = np.zeros((h, 1))
@@ -19,15 +31,15 @@ def initialize_parameters(d):
 
 
 def compute_cost(a2, y):
-    m = y.shape[0]
-    e = a2.T - y
+    m = y.shape[1]
+    e = a2 - y
     se = np.dot(e, e.T)
     mse = np.sum(se) / m
     mse = np.squeeze(mse)
     return mse
 
 
-def update_parameters(parameters, grads, lr=0.7):
+def update_parameters(parameters, grads, lr=1.3):
 
     w1 = parameters['w1']
     b1 = parameters['b1']
